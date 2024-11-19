@@ -8,3 +8,6 @@ edition = "2021"
 [dependencies]
 clap = { version = "4.5.21", features = ["derive"] }
 thiserror = "2.0.3"
+
+hf_parser_rust = { path = "../HF-PARSER-RUST" }
+hf_codegen = { path = "../HF-CODEGEN" }
