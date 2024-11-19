@@ -4,6 +4,8 @@ use thiserror::Error;
 
 use hf_codegen::target::{Arch, CallingConvention, Os, Target};
 
+mod compile;
+
 #[derive(Debug, Error)]
 enum ParseError {
     #[error("invalid target triplet")]
@@ -28,7 +30,7 @@ impl std::str::FromStr for TargetTriplet {
         }
 
         let host = parts[0].to_string();
-        let vendor = parts[1].to_string();
+        let _vendor = parts[1].to_string();
         let system = parts[2].to_string();
 
         let arch = match host.as_str() {
@@ -103,9 +105,11 @@ fn main() {
 
     match cli.command {
         Command::Compile { opt, target, files } => {
-            println!("Optimisation level: {}", opt);
-            println!("Target: {:?}", target);
-            println!("Files: {:?}", files);
+            let target = target.map(|t| t.target).unwrap_or_else(|| Target::native());
+            let settings = compile::CompileSettings { optimisation: opt };
+            for file in files {
+                compile::compile(file, target.clone(), &settings).unwrap();
+            }
         }
     }
 }
