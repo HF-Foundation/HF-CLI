@@ -62,7 +62,7 @@ impl CompilationError {
             .collect::<Vec<_>>();
 
         eprintln!("error: {}", err_fmt);
-        eprintln!("-> {}:{}", path.display(), location.0);
+        eprintln!("-> {}:{}:{}", path.display(), location.0 + 1, location.1 + 1);
         for (i, line) in relevant_lines {
             eprintln!("{:4} | {}", i + 1, line,);
             if i == underline_line {
