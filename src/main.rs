@@ -2,7 +2,7 @@ use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 use thiserror::Error;
 
-use hf_codegen::target::{Arch, CallingConvention, Os, Target};
+use hf_codegen::{compiler::CompilerSettings, target::{Arch, CallingConvention, Os, Target}};
 
 mod compile;
 
@@ -111,7 +111,7 @@ fn main() {
                 eprintln!("error: invalid optimization level, must be between 0 and 3");
                 std::process::exit(1);
             }
-            let settings = compile::CompileSettings { optimization: opt };
+            let settings = CompilerSettings { optimization: opt, ..Default::default() };
             for file in files {
                 compile::compile(file, target.clone(), &settings).unwrap();
             }

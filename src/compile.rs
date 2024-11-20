@@ -1,4 +1,4 @@
-use hf_codegen::target::Target;
+use hf_codegen::{compiler::CompilerSettings, target::Target};
 use hf_parser_rust::{ast::SyntaxError, token::TokenizerError};
 use std::path::{Path, PathBuf};
 use thiserror::Error;
@@ -76,14 +76,11 @@ impl CompilationError {
     }
 }
 
-pub struct CompileSettings {
-    pub optimization: u8,
-}
 
 pub fn compile(
     path: PathBuf,
     target: Target,
-    settings: &CompileSettings,
+    settings: &CompilerSettings,
 ) -> Result<(), CompilationError> {
     // let code = std::fs::read_to_string(path).map_err(|e| CompilationError::IoError(e))?;
     // let tokens =
@@ -119,6 +116,10 @@ pub fn compile(
             return Err(e);
         }
     };
+
+    let ir = hf_codegen::ir::from_ast(ast);
+
+    let mut compiler = hf_codegen::compiler::HfCompiler::new(target, settings);
 
     todo!()
 }
