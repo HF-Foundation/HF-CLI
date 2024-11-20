@@ -118,3 +118,38 @@ fn main() {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use super::*;
+
+    #[test]
+    fn test_target_triplet_from_str() {
+        let triplets = vec![
+            "x86_64-unknown-linux",
+            "aarch64-unknown-linux",
+            "riscv64-unknown-illumos",
+            "x86_64-unknown-windows",
+            "wasm32-unknown-theseus",
+            "mips-unknown-redox"
+        ];
+        let expected_archs = vec![
+            Arch::X86_64,
+            Arch::Aarch64,
+            Arch::RiscV64,
+            Arch::X86_64,
+            Arch::Wasm32,
+            Arch::Mips,
+        ];
+
+        for (triplet, expected_arch) in triplets.iter().zip(expected_archs.iter()) {
+            let result = TargetTriplet::from_str(triplet);
+            assert!(result.is_ok(), "Failed to parse triplet: {}", triplet);
+            let target_triplet = result.unwrap();
+            assert_eq!(target_triplet.target.arch, *expected_arch, "Unexpected arch for triplet: {}", triplet);
+            // TODO: Add tests for calling convention
+        }
+    }
+}
