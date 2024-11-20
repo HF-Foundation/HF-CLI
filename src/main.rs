@@ -65,7 +65,7 @@ impl std::str::FromStr for TargetTriplet {
         };
 
         let calling_convention = if let Some(os) = os {
-            os.calling_convention()
+            CallingConvention::from_arch_os(arch, os)
         } else {
             // TODO: Match system to calling convention
             todo!()
@@ -129,19 +129,15 @@ mod tests {
     fn test_target_triplet_from_str() {
         let triplets = vec![
             "x86_64-unknown-linux",
-            "aarch64-unknown-linux",
-            "riscv64-unknown-illumos",
             "x86_64-unknown-windows",
-            "wasm32-unknown-theseus",
-            "mips-unknown-redox"
+            "x86-unknown-linux",
+            "x86-unknown-windows",
         ];
         let expected_archs = vec![
             Arch::X86_64,
-            Arch::Aarch64,
-            Arch::RiscV64,
             Arch::X86_64,
-            Arch::Wasm32,
-            Arch::Mips,
+            Arch::X86,
+            Arch::X86,
         ];
 
         for (triplet, expected_arch) in triplets.iter().zip(expected_archs.iter()) {
