@@ -96,6 +96,7 @@ enum Command {
         target: Option<TargetTriplet>,
 
         /// A list of files to compile.
+        #[arg(required = true)]
         files: Vec<PathBuf>,
     },
 }
