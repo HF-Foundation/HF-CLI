@@ -145,7 +145,6 @@ mod tests {
             assert!(result.is_ok(), "Failed to parse triplet: {}", triplet);
             let target_triplet = result.unwrap();
             assert_eq!(target_triplet.target.arch, *expected_arch, "Unexpected arch for triplet: {}", triplet);
-            // TODO: Add tests for calling convention
         }
     }
 }
