@@ -77,7 +77,7 @@ impl CompilationError {
 }
 
 pub struct CompileSettings {
-    pub optimisation: u8,
+    pub optimization: u8,
 }
 
 pub fn compile(

@@ -87,7 +87,7 @@ struct Cli {
 #[derive(Subcommand, Debug)]
 enum Command {
     Compile {
-        /// Sets the optimisation level. 0 = no optimisation, 3 = maximum optimisation.
+        /// Sets the optimization level. 0 = no optimization, 3 = maximum optimization.
         #[arg(short, long, default_value_t = 0)]
         opt: u8,
 
@@ -107,7 +107,11 @@ fn main() {
     match cli.command {
         Command::Compile { opt, target, files } => {
             let target = target.map(|t| t.target).unwrap_or_else(|| Target::native());
-            let settings = compile::CompileSettings { optimisation: opt };
+            if opt > 3 {
+                eprintln!("error: invalid optimization level, must be between 0 and 3");
+                std::process::exit(1);
+            }
+            let settings = compile::CompileSettings { optimization: opt };
             for file in files {
                 compile::compile(file, target.clone(), &settings).unwrap();
             }
