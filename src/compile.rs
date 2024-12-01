@@ -1,4 +1,7 @@
-use hf_codegen::{compiler::CompilerSettings, target::Target};
+use hf_codegen::{
+    compiler::{CompilerError, CompilerSettings},
+    target::Target,
+};
 use hf_parser_rust::{ast::SyntaxError, token::TokenizerError};
 use std::path::{Path, PathBuf};
 use thiserror::Error;
@@ -13,14 +16,24 @@ pub enum CompilationError {
 
     #[error("error while building ast: {0:?}")]
     AstBuilderError(SyntaxError),
+
+    #[error("compiler error: {0:?}")]
+    CompilerError(CompilerError),
 }
 
 impl CompilationError {
     pub fn pretty_print(&self, path: &Path, code: &str) {
-        // TODO: Handle this case nicer
-        if let Self::IoError(e) = self {
-            eprintln!("IO error: {}", e);
-            return;
+        // TODO: Handle these cases nicer
+        match self {
+            Self::IoError(e) => {
+                eprintln!("IO error: {}", e);
+                return;
+            }
+            Self::CompilerError(e) => {
+                eprintln!("Compiler error: {:?}", e);
+                return;
+            }
+            _ => {}
         }
 
         let location = match self {
@@ -62,7 +75,12 @@ impl CompilationError {
             .collect::<Vec<_>>();
 
         eprintln!("error: {}", err_fmt);
-        eprintln!("-> {}:{}:{}", path.display(), location.0 + 1, location.1 + 1);
+        eprintln!(
+            "-> {}:{}:{}",
+            path.display(),
+            location.0 + 1,
+            location.1 + 1
+        );
         for (i, line) in relevant_lines {
             eprintln!("{:4} | {}", i + 1, line,);
             if i == underline_line {
@@ -76,22 +94,11 @@ impl CompilationError {
     }
 }
 
-
 pub fn compile(
     path: PathBuf,
     target: Target,
     settings: &CompilerSettings,
 ) -> Result<(), CompilationError> {
-    // let code = std::fs::read_to_string(path).map_err(|e| CompilationError::IoError(e))?;
-    // let tokens =
-    //     hf_parser_rust::token::tokenize(&code).map_err(|e| CompilationError::TokenizerError(e))?;
-    // println!("Tokens:\n{:#?}\n", tokens);
-    // let ast =
-    //     hf_parser_rust::ast::build_ast(tokens).map_err(|e| CompilationError::AstBuilderError(e))?;
-    // println!("Ast:\n{:#?}\n", ast);
-    // // let ir = hf_codegen::ir::from_ast(ast);
-    // todo!()
-
     let code = std::fs::read_to_string(&path).map_err(|e| CompilationError::IoError(e))?;
     let tokens = match hf_parser_rust::token::tokenize(&code) {
         Ok(tokens) => {
@@ -119,7 +126,21 @@ pub fn compile(
 
     let ir = hf_codegen::ir::from_ast(ast);
 
-    let mut compiler = hf_codegen::compiler::HfCompiler::new(target, settings);
+    let mut compiler = hf_codegen::compiler::HfCompiler::new(target, settings.clone());
+    let obj = compiler
+        .compile_to_object_file(
+            ir,
+            path.file_name()
+                .map(|s| s.to_string_lossy().to_string())
+                .unwrap_or(String::new())
+                .as_str(),
+        )
+        .map_err(|e| CompilationError::CompilerError(e))?;
 
-    todo!()
+    let raw = obj.write().expect("Failed to write object file to buffer!");
+    let obj_path = path.with_extension("o");
+    std::fs::write(&obj_path, raw).expect("Failed to write object file!");
+    println!("Wrote object file {}!", obj_path.display());
+
+    Ok(())
 }

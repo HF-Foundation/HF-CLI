@@ -2,7 +2,10 @@ use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 use thiserror::Error;
 
-use hf_codegen::{compiler::CompilerSettings, target::{Arch, CallingConvention, Os, Target}};
+use hf_codegen::{
+    compiler::CompilerSettings,
+    target::{Arch, CallingConvention, Os, Target},
+};
 
 mod compile;
 
@@ -111,7 +114,10 @@ fn main() {
                 eprintln!("error: invalid optimization level, must be between 0 and 3");
                 std::process::exit(1);
             }
-            let settings = CompilerSettings { optimization: opt, ..Default::default() };
+            let settings = CompilerSettings {
+                optimization_level: opt,
+                ..Default::default()
+            };
             for file in files {
                 compile::compile(file, target.clone(), &settings).unwrap();
             }
@@ -133,18 +139,17 @@ mod tests {
             "x86-unknown-linux",
             "x86-unknown-windows",
         ];
-        let expected_archs = vec![
-            Arch::X86_64,
-            Arch::X86_64,
-            Arch::X86,
-            Arch::X86,
-        ];
+        let expected_archs = vec![Arch::X86_64, Arch::X86_64, Arch::X86, Arch::X86];
 
         for (triplet, expected_arch) in triplets.iter().zip(expected_archs.iter()) {
             let result = TargetTriplet::from_str(triplet);
             assert!(result.is_ok(), "Failed to parse triplet: {}", triplet);
             let target_triplet = result.unwrap();
-            assert_eq!(target_triplet.target.arch, *expected_arch, "Unexpected arch for triplet: {}", triplet);
+            assert_eq!(
+                target_triplet.target.arch, *expected_arch,
+                "Unexpected arch for triplet: {}",
+                triplet
+            );
         }
     }
 }
